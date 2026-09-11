@@ -1,0 +1,41 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Модель пользователя для авторизации
+model User {
+  id         Int      @id @default(autoincrement())
+  type       String   // "fiz" | "yur"
+  role       String   // "seller" | "buyer"
+  phone      String   @unique
+  email      String   @unique
+  inn        String
+  password   String   
+  created_at DateTime @default(now())
+}
+
+// Модель автомобиля (лота) для каталога и личного кабинета
+model Lot {
+  id            Int      @id @default(autoincrement())
+  title         String
+  seller        String
+  year          Int
+  transmission  String
+  mileage_km    Int
+  engine        String
+  min_bid_rub   Float
+  vin           String
+  vehicle_type  String
+  brand         String
+  model         String
+  region        String
+  city          String
+  auction_type  String
+  image_url     String?
+  created_at    DateTime @default(now())
+}

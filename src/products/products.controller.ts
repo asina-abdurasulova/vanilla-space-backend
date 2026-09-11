@@ -1,18 +1,41 @@
 
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseInterceptors, UploadedFiles } from '@nestjs/common';
 import { ProductsService } from './products.service';
+import { FilesInterceptor } from '@nestjs/platform-express'; 
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
-@Controller('products')
-export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+@Controller('lots')
+export class LotsController {
+  constructor(private readonly lotsService: ProductsService) {}
+
+  @Post()
+ 
+  @UseInterceptors(FilesInterceptor('images', 10, {
+    storage: diskStorage({
+      destination: './uploads',
+      filename: (req, file, cb) => {
+        const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
+        cb(null, `${randomName}${extname(file.originalname)}`);
+      }
+    })
+  }))
+  create(@Body() createLotDto: any, @UploadedFiles() files: any[]) {
+
+    const imagePaths = files && files.length > 0 
+      ? files.map(file => `/uploads/${file.filename}`).join(',') 
+      : null;
+
+    return this.lotsService.create({ ...createLotDto, mainImage: imagePaths });
+  }
 
   @Get()
-  getAll() {
-    return this.productsService.getAll();
-  }
-  @Get(':id') 
-    getOne(@Param('id')id:string) {
-      return this.productsService.getOne(id);
-      }
+  findAll() {
+    return this.lotsService.findAll();
   }
 
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.lotsService.findOne(+id);
+  }
+}
