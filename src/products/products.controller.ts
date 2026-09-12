@@ -1,5 +1,5 @@
 
-import { Controller, Get, Post, Body, Param, UseInterceptors, UploadedFiles } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseInterceptors, UploadedFiles, Query} from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { FilesInterceptor } from '@nestjs/platform-express'; 
 import { diskStorage } from 'multer';
@@ -29,13 +29,16 @@ export class LotsController {
     return this.lotsService.create({ ...createLotDto, mainImage: imagePaths });
   }
 
-  @Get()
-  findAll() {
-    return this.lotsService.findAll();
-  }
-
+ 
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.lotsService.findOne(+id);
+  }
+   @Get()
+  findAll(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 6,
+  ) {
+    return this.lotsService.findAll(page, limit);
   }
 }

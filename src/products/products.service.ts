@@ -7,10 +7,34 @@ export class ProductsService {
   constructor(private prisma: PrismaService) {}
 
   
-  async findAll() {
-    return this.prisma.lot.findMany({
-      orderBy: { created_at: 'desc' }, 
-    });
+  // async findAll() {
+  //   return this.prisma.lot.findMany({
+  //     orderBy: { created_at: 'desc' }, 
+  //   });
+  // }
+   
+  async findAll(page: number = 1, limit: number = 6) {
+    const skip = (page - 1) * limit;
+
+    
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.lot.findMany({
+        skip: Number(skip),
+        take: Number(limit),
+        orderBy: { created_at: 'desc' },
+      }),
+      this.prisma.lot.count(),
+    ]);
+
+    return {
+      data,
+      meta: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findOne(id: number) {
@@ -19,7 +43,12 @@ export class ProductsService {
     });
   }
 
-  
+  async updatePrice(id: number, newPrice: number) {
+    return this.prisma.lot.update({
+      where: { id },
+      data: { min_bid_rub: newPrice },
+    });
+  }
   async create(data: any) {
     return this.prisma.lot.create({
       data: {
